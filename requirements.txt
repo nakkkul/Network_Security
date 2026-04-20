@@ -4,4 +4,6 @@ numpy
 pymongo[srv]==3.11
 certifi
 scikit-learn
+dill
+pyaml
 #-e.
