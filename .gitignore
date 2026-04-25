@@ -3,3 +3,8 @@ venv/
 Network_Data/
 logs/
 Artifacts/
+final_model/
+mlflow.db
+__pycache__/
+*.pyc
+/.vscode/
