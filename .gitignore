@@ -8,3 +8,6 @@ mlflow.db
 __pycache__/
 *.pyc
 /.vscode/
+# Ignore generated prediction outputs but keep the folder
+prediction_output/*
+!prediction_output/.gitkeep
