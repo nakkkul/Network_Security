@@ -4,6 +4,7 @@ from network_security.logging.logger import logging
 
 ## configuration of the Data Ingestion Config
 
+#import certifi
 from network_security.entity.config_entity import DataIngestionConfig
 from network_security.entity.artifact_entity import DataIngestionArtifact
 import os

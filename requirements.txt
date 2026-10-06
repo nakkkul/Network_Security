@@ -6,7 +6,7 @@ certifi
 scikit-learn
 mlflow
 dagshub
-#dill
+dill
 pyaml
 fastapi
 uvicorn

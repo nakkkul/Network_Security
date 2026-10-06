@@ -8,6 +8,7 @@ from network_security.components.data_ingestion import DataIngestion
 from network_security.components.data_validation import DataValidation
 from network_security.components.data_transformation import DataTransformation
 from network_security.components.model_trainer import ModelTrainer
+from network_security.cloud.s3_syncer import S3Sync
 
 from network_security.entity.config_entity import(
     TrainingPipelineConfig,
