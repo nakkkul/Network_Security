@@ -1,21 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Data Table</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
 </head>
 <body>
-    <h2>Predicted Data</h2>
-    {{ table | safe }}
+    <main class="page-shell">
+        <section class="hero compact-hero">
+            <div class="eyebrow">BATCH ANALYSIS • COMPLETE</div>
+            <h1>Prediction Results</h1>
+            <p class="hero-text">The uploaded dataset was processed by the existing preprocessing and classification artifacts.</p>
+        </section>
+
+        <section class="results-grid">
+            <div class="stat-card"><span>Rows analyzed</span><strong>{{ rows_analyzed }}</strong></div>
+            <div class="stat-card"><span>Phishing predictions</span><strong>{{ phishing_count }}</strong></div>
+            <div class="stat-card"><span>Legitimate predictions</span><strong>{{ legitimate_count }}</strong></div>
+        </section>
+
+        <section class="card result-card">
+            <div class="section-heading">
+                <div>
+                    <div class="section-kicker">OUTPUT</div>
+                    <h2>Prediction dataset</h2>
+                </div>
+                <div class="legend">
+                    <span><b>0</b> Phishing</span>
+                    <span><b>1</b> Legitimate</span>
+                </div>
+            </div>
+
+            <div class="table-wrap">{{ table|safe }}</div>
+
+            <div class="result-actions">
+                {% if download_available %}
+                <a class="primary-button link-button" href="/download-result">Download Results</a>
+                {% endif %}
+                <a class="secondary-button link-button" href="/">Analyze Another Dataset</a>
+            </div>
+        </section>
+
+        <footer>
+            <span>Prediction completed using the persisted model artifacts.</span>
+            <span>0 = Phishing • 1 = Legitimate</span>
+        </footer>
+    </main>
 </body>
 </html>

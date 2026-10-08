@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Website Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <main class="page-shell">
+        <section class="hero">
+            <div class="eyebrow">MACHINE LEARNING • BATCH INFERENCE</div>
+            <h1>Phishing Website Detection System</h1>
+            <p class="hero-text">
+                Analyze structured phishing-website feature data with a persisted scikit-learn model
+                served through FastAPI.
+            </p>
+            <div class="hero-badges">
+                <span>FastAPI</span>
+                <span>Scikit-learn</span>
+                <span>Docker</span>
+                <span>MLflow</span>
+            </div>
+        </section>
+
+        {% if error %}
+        <div class="alert alert-error" role="alert">
+            <strong>Validation / inference issue</strong>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        {% if success %}
+        <div class="alert alert-success" role="status">
+            {{ success }}
+        </div>
+        {% endif %}
+
+        <section class="main-grid">
+            <div class="card upload-card">
+                <div class="section-heading">
+                    <div>
+                        <div class="section-kicker">BATCH ANALYSIS</div>
+                        <h2>Upload a prediction dataset</h2>
+                    </div>
+                    <div class="count-chip">{{ feature_count }} features</div>
+                </div>
+
+                <p class="muted">
+                    Upload a CSV containing the {{ feature_count }} model input features. The training target
+                    <code>Result</code> is not required for inference.
+                </p>
+
+                <form action="/predict" method="post" enctype="multipart/form-data" class="upload-form">
+                    <label class="dropzone" for="file-input">
+                        <input id="file-input" name="file" type="file" accept=".csv,text/csv" required>
+                        <span class="dropzone-icon">CSV</span>
+                        <span class="dropzone-title">Choose a CSV file</span>
+                        <span class="dropzone-subtitle">Use your own dataset or the sample file below.</span>
+                    </label>
+                    <div id="selected-file" class="selected-file">No file selected</div>
+                    <button class="primary-button" type="submit">Analyze Dataset</button>
+                </form>
+
+                <a class="secondary-button" href="/sample-data">Download Sample CSV</a>
+            </div>
+
+            <div class="card info-card">
+                <div class="section-kicker">HOW IT WORKS</div>
+                <h2>From dataset to prediction</h2>
+                <div class="pipeline-list">
+                    <div class="pipeline-step">
+                        <span>01</span>
+                        <div><strong>Validate</strong><p>Check file format, required columns, and numeric inputs.</p></div>
+                    </div>
+                    <div class="pipeline-step">
+                        <span>02</span>
+                        <div><strong>Transform</strong><p>Apply the saved preprocessing pipeline.</p></div>
+                    </div>
+                    <div class="pipeline-step">
+                        <span>03</span>
+                        <div><strong>Predict</strong><p>Run the persisted classification model.</p></div>
+                    </div>
+                    <div class="pipeline-step">
+                        <span>04</span>
+                        <div><strong>Review</strong><p>Inspect the batch results and download the output CSV.</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card explanation-card">
+            <div>
+                <div class="section-kicker">INPUT FORMAT</div>
+                <h2>What does the CSV contain?</h2>
+                <p class="muted">
+                    The model was trained on engineered phishing-website features. This application is a
+                    batch inference interface for those structured features; it does not accept raw URLs in V1.
+                </p>
+            </div>
+            <div class="feature-list">
+                <span>URL characteristics</span>
+                <span>Domain characteristics</span>
+                <span>Page / link signals</span>
+                <span>Security indicators</span>
+            </div>
+        </section>
+
+        <section class="footer-grid">
+            <div class="mini-card"><strong>Training</strong><span>Modular ML pipeline with data ingestion, validation and transformation.</span></div>
+            <div class="mini-card"><strong>Inference</strong><span>FastAPI endpoint using persisted preprocessing and model artifacts.</span></div>
+            <div class="mini-card"><strong>Deployment</strong><span>Docker-ready application designed for a simple public inference demo.</span></div>
+        </section>
+
+        <footer>
+            <span>Phishing Website Detection System</span>
+            <span>Built with Python • FastAPI • Scikit-learn</span>
+        </footer>
+    </main>
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const selectedFile = document.getElementById('selected-file');
+        const form = document.querySelector('.upload-form');
+        const submitButton = form.querySelector('.primary-button');
+
+        fileInput.addEventListener('change', () => {
+            selectedFile.textContent = fileInput.files.length ? fileInput.files[0].name : 'No file selected';
+        });
+
+        form.addEventListener('submit', () => {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Analyzing…';
+        });
+    </script>
+</body>
+</html>

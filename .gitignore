@@ -1,13 +1,15 @@
 .env
 venv/
+.venv/
 Network_Data/
 logs/
 Artifacts/
-final_model/
+final_model/*
+!final_model/model.pkl
+!final_model/preprocessor.pkl
 mlflow.db
 __pycache__/
 *.pyc
 /.vscode/
-# Ignore generated prediction outputs but keep the folder
 prediction_output/*
 !prediction_output/.gitkeep
