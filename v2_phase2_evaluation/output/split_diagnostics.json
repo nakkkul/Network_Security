@@ -1,0 +1,105 @@
+{
+  "conflicting_label_policy": {
+    "conflicting_feature_group_count": 64,
+    "limitation": "Same feature vector does not establish same website identity because raw URLs/website IDs are absent.",
+    "policy": "Retain all rows in the primary split; keep each exact feature vector in one partition/fold; do not relabel or deduplicate. Conduct a separately labelled sensitivity analysis later.",
+    "rows_in_conflicting_feature_groups": 357
+  },
+  "inner_cv": {
+    "folds": [
+      {
+        "fold": 0,
+        "shared_feature_groups": 0,
+        "train_feature_groups": 3705,
+        "train_phishing_share": 0.44307735822373073,
+        "train_rows": 7071,
+        "validation_feature_groups": 929,
+        "validation_phishing_share": 0.44300225733634313,
+        "validation_rows": 1772
+      },
+      {
+        "fold": 1,
+        "shared_feature_groups": 0,
+        "train_feature_groups": 3710,
+        "train_phishing_share": 0.4431256181998022,
+        "train_rows": 7077,
+        "validation_feature_groups": 924,
+        "validation_phishing_share": 0.44280860702151753,
+        "validation_rows": 1766
+      },
+      {
+        "fold": 2,
+        "shared_feature_groups": 0,
+        "train_feature_groups": 3710,
+        "train_phishing_share": 0.44309345397992367,
+        "train_rows": 7073,
+        "validation_feature_groups": 924,
+        "validation_phishing_share": 0.4429378531073446,
+        "validation_rows": 1770
+      },
+      {
+        "fold": 3,
+        "shared_feature_groups": 0,
+        "train_feature_groups": 3702,
+        "train_phishing_share": 0.44296819787985864,
+        "train_rows": 7075,
+        "validation_feature_groups": 932,
+        "validation_phishing_share": 0.4434389140271493,
+        "validation_rows": 1768
+      },
+      {
+        "fold": 4,
+        "shared_feature_groups": 0,
+        "train_feature_groups": 3709,
+        "train_phishing_share": 0.44304691916336914,
+        "train_rows": 7076,
+        "validation_feature_groups": 925,
+        "validation_phishing_share": 0.4431239388794567,
+        "validation_rows": 1767
+      }
+    ],
+    "method": "StratifiedGroupKFold within outer training partition only",
+    "n_splits": 5,
+    "random_state": 43,
+    "rows_covered_by_validation_once": 8843,
+    "shared_feature_groups_across_fold_train_validation": 0
+  },
+  "no_estimators_fitted": true,
+  "outer_split": {
+    "fold_index_used_as_holdout": 0,
+    "holdout": {
+      "legitimate_1_count": 1232,
+      "legitimate_1_share": 0.5569620253164557,
+      "phishing_0_count": 980,
+      "phishing_0_share": 0.4430379746835443,
+      "rows": 2212
+    },
+    "holdout_feature_groups": 1151,
+    "holdout_fraction": 0.2000904568068747,
+    "holdout_rows_in_conflicting_groups": 72,
+    "method": "StratifiedGroupKFold; first fold reserved as final holdout",
+    "n_splits": 5,
+    "random_state": 42,
+    "shared_feature_groups": 0,
+    "train": {
+      "legitimate_1_count": 4925,
+      "legitimate_1_share": 0.5569376908289042,
+      "phishing_0_count": 3918,
+      "phishing_0_share": 0.4430623091710958,
+      "rows": 8843
+    },
+    "train_feature_groups": 4634,
+    "train_fraction": 0.7999095431931252,
+    "train_rows_in_conflicting_groups": 285
+  },
+  "target_mapping": {
+    "-1": {
+      "mapped": 0,
+      "meaning": "phishing"
+    },
+    "1": {
+      "mapped": 1,
+      "meaning": "legitimate"
+    }
+  }
+}

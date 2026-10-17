@@ -30,20 +30,45 @@ class DataValidation:
         
 
     def validate_number_of_columns(self,dataframe:pd.DataFrame)->bool:
+        """Validate column count, names, and order against the configured schema."""
         try:
-            number_of_columns=len(self._schema_config)
-            logging.info(f"Required number of columns :{number_of_columns}")
-            logging.info(f"Dataframe has columns :{len(dataframe.columns)}")
-            if len(dataframe.columns)==number_of_columns:
-                return True
-            else:
+            schema_columns = self._schema_config.get("columns")
+            if not isinstance(schema_columns, list) or not schema_columns:
+                raise ValueError("Schema must define a non-empty 'columns' list.")
+
+            expected_columns = []
+            for column_definition in schema_columns:
+                if not isinstance(column_definition, dict) or len(column_definition) != 1:
+                    raise ValueError(
+                        "Each schema column entry must be a mapping with exactly one column name."
+                    )
+                expected_columns.append(next(iter(column_definition)))
+
+            if len(expected_columns) != len(set(expected_columns)):
+                raise ValueError("Schema contains duplicate column names.")
+
+            actual_columns = list(dataframe.columns)
+            logging.info(f"Required number of columns :{len(expected_columns)}")
+            logging.info(f"Dataframe has columns :{len(actual_columns)}")
+            if actual_columns != expected_columns:
+                logging.error(
+                    "Dataframe schema mismatch. Expected ordered columns %s; got %s",
+                    expected_columns,
+                    actual_columns,
+                )
                 return False
+            return True
         except Exception as e:
             raise NetworkSecurityException(e,sys)
 
 
     def detect_dataset_drift(self,base_df,current_df,threshold=0.05)->bool:
+        """Write per-column KS diagnostics and return True only when no drift is detected."""
         try:
+            if list(base_df.columns) != list(current_df.columns):
+                raise ValueError(
+                    "Base and current dataframes must have identical columns in identical order."
+                )
             status=True
             report={}
             for column in base_df.columns:
@@ -64,6 +89,7 @@ class DataValidation:
             dir_path=os.path.dirname(drif_report_file_path)
             os.makedirs(dir_path,exist_ok=True)
             write_yaml_file(file_path=drif_report_file_path,content=report)
+            return status
 
         except Exception as e:
             raise NetworkSecurityException(e,sys)
@@ -76,29 +102,25 @@ class DataValidation:
             train_dataframe=DataValidation.read_data(train_file_path)
             test_dataframe=DataValidation.read_data(test_file_path)
 
-            status=self.validate_number_of_columns(dataframe=train_dataframe)
-            if not status:
-                error_message=f"Trained dataframe does not contain all columns.\n"
-
-            status=self.validate_number_of_columns(dataframe=test_dataframe)
-            if not status:
-                error_message=f"Test dataframe does not contain all columns.\n"
+            if not self.validate_number_of_columns(dataframe=train_dataframe):
+                raise ValueError("Training dataframe columns do not match the configured schema.")
+            if not self.validate_number_of_columns(dataframe=test_dataframe):
+                raise ValueError("Test dataframe columns do not match the configured schema.")
 
             status=self.detect_dataset_drift(base_df=train_dataframe,current_df=test_dataframe)
-            dir_path=os.path.dirname(self.data_validation_config.valid_train_file_path)
-            os.makedirs(dir_path,exist_ok=True)
+            valid_train_path = self.data_validation_config.valid_train_file_path
+            valid_test_path = self.data_validation_config.valid_test_file_path
+            for output_path in (valid_train_path, valid_test_path):
+                output_dir = os.path.dirname(output_path)
+                if output_dir:
+                    os.makedirs(output_dir, exist_ok=True)
 
-            train_dataframe.to_csv(
-                self.data_validation_config.valid_train_file_path,index=False,header=True
-            )
-
-            test_dataframe.to_csv(
-                self.data_validation_config.valid_test_file_path,index=False,header=True
-            )
+            train_dataframe.to_csv(valid_train_path,index=False,header=True)
+            test_dataframe.to_csv(valid_test_path,index=False,header=True)
             data_validation_artifact = DataValidationArtifact(
                 validation_status=status,
-                valid_train_file_path=self.data_ingestion_artifact.trained_file_path,
-                valid_test_file_path=self.data_ingestion_artifact.test_file_path,
+                valid_train_file_path=valid_train_path,
+                valid_test_file_path=valid_test_path,
                 invalid_train_file_path=None,
                 invalid_test_file_path=None,
                 drift_report_file_path=self.data_validation_config.drift_report_file_path,
