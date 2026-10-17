@@ -16,7 +16,6 @@ from network_security.utils.main_utils.utils import load_numpy_array_data,evalua
 from network_security.utils.ml_utils.metric.classification_metric import get_classification_score
 
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import r2_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import (
@@ -115,8 +114,12 @@ class ModelTrainer:
             }
             
         }
-        model_report:dict=evaluate_models(X_train=X_train,y_train=y_train,X_test=x_test,y_test=y_test,
-                                          models=models,param=params)
+        model_report:dict=evaluate_models(
+            X_train=X_train,
+            y_train=y_train,
+            models=models,
+            param=params,
+        )
         
         ## To get best model score from dict
         best_model_score = max(sorted(model_report.values()))
@@ -127,6 +130,9 @@ class ModelTrainer:
             list(model_report.values()).index(best_model_score)
         ]
         best_model = models[best_model_name]
+        # Selection is complete using training-only CV; fit the chosen model once
+        # on the complete training partition before computing diagnostic metrics.
+        best_model.fit(X_train, y_train)
         y_train_pred=best_model.predict(X_train)
 
         classification_train_metric=get_classification_score(y_true=y_train,y_pred=y_train_pred)
