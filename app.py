@@ -1,3 +1,5 @@
+import hashlib
+import json
 import os
 import re
 import sys
@@ -6,6 +8,7 @@ import uuid
 from functools import lru_cache
 from pathlib import Path
 
+import joblib
 import pandas as pd
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
@@ -27,6 +30,23 @@ BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 FINAL_MODEL_DIR = BASE_DIR / "final_model"
+# The Phase 7 artifacts are local, verified outputs and are not bundled in Git.
+# Keep V1 as the default; opt into the pinned Phase 7 model using
+# NETWORK_SECURITY_MODEL_VERSION=phase7 before starting the application.
+PHASE7_MODEL_DIR = Path(
+    os.getenv(
+        "NETWORK_SECURITY_PHASE7_ARTIFACT_DIR",
+        str(BASE_DIR / "Artifacts" / "phase7_final_fit_20261018T145029Z_07fc8d2c"),
+    )
+).expanduser().resolve()
+MODEL_VERSION_ENV = "NETWORK_SECURITY_MODEL_VERSION"
+PHASE7_EXPECTED_ARTIFACT_SHA256 = {
+    "fit_report.json": "4ac345827cde00412828f92f7c106b65a648c0ad5fb5107da223b9c341204ed3",
+    "selected_pipeline.joblib": "ea810723e15af5f4f17df39f913eb7bdf4cd752b7e263834c2e83ce3b4c403db",
+    "preprocessor.joblib": "3bab3417907555b052fc26760ad3b35b3f70fc0d0d66f3ca3a0f4c1c2f85f8ae",
+    "classifier.joblib": "628cc23f0f8a31297105316c010ef798bc36c1f6b8249f1878d3fae1a81cf05e",
+    "outer_training_source_row_indices.csv": "4be3b605a2585bf239aac1f4b929eef18a7940f25bfc0bc5747c43e6e0134265",
+}
 PREDICTION_OUTPUT_DIR = BASE_DIR / "prediction_output"
 SAMPLE_DATA_DIR = BASE_DIR / "sample_data"
 PREDICTION_RESULT_RETENTION_SECONDS = 24 * 60 * 60
@@ -85,10 +105,109 @@ app.add_middleware(
 )
 
 
+def _sha256_file(path: Path) -> str:
+    """Return a file's SHA-256 without deserializing its contents."""
+    digest = hashlib.sha256()
+    with path.open("rb") as file_obj:
+        for chunk in iter(lambda: file_obj.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _load_phase7_inference_model() -> NetworkModel:
+    """Load the approved Phase 7 artifacts only after hash/provenance checks."""
+    fit_report_path = PHASE7_MODEL_DIR / "fit_report.json"
+    artifact_paths = {
+        name: PHASE7_MODEL_DIR / name
+        for name in PHASE7_EXPECTED_ARTIFACT_SHA256
+        if name != "fit_report.json"
+    }
+    paths_to_verify = {"fit_report.json": fit_report_path, **artifact_paths}
+
+    # Hash-check every artifact before loading any joblib/pickle content.
+    for name, path in paths_to_verify.items():
+        if not path.is_file():
+            raise FileNotFoundError(
+                f"The configured Phase 7 model artifact is missing: {path}"
+            )
+        if _sha256_file(path) != PHASE7_EXPECTED_ARTIFACT_SHA256[name]:
+            raise ValueError(
+                f"SHA-256 mismatch for Phase 7 artifact {name}; refusing to load it."
+            )
+
+    with fit_report_path.open("r", encoding="utf-8") as file_obj:
+        fit_report = json.load(file_obj)
+
+    expected_report_values = {
+        "phase": 7,
+        "selected_candidate_by_inner_cv_only": "Gradient Boosting",
+        "outer_training_rows_fitted": 8843,
+        "reserved_holdout_rows": 2212,
+        "fitted_estimator_saved": True,
+        "holdout_scored": False,
+        "holdout_predictions_generated": False,
+        "final_model_directory_modified": False,
+        "dataset_sha256": "e20bf913b6c2e669f4e875e5d223be2542cc7c79a7b62d284ae9d9627c3d9678",
+        "schema_sha256": "0fe172eb670067a0048c62b601d5b63d311be827a5ee81c65f0fbd3dc480ad83",
+        "split_manifest_sha256": "3dc82b79e2feb8f7b5fd23045be577be92d73d14aeed0005d3577782749f3ac7",
+        "inner_cv_assignment_sha256": "9540bfa60ee0955455e8ba8ae3e039f6c83741f7b2760bac1db9a10fb1291cc9",
+        "selection_source_git_commit": "76482641d41c300660be597224208a14090607e5",
+        "implementation_git_commit": "27f44fe950e92196ad8fe88a8500d5a6a89fa8ff",
+    }
+    for key, expected in expected_report_values.items():
+        if fit_report.get(key) != expected:
+            raise ValueError(
+                f"The Phase 7 fit report field {key!r} does not match the approved run."
+            )
+
+    reported_hashes = fit_report.get("artifacts_sha256", {})
+    for artifact_name in (
+        "selected_pipeline.joblib",
+        "preprocessor.joblib",
+        "classifier.joblib",
+        "outer_training_source_row_indices.csv",
+    ):
+        if reported_hashes.get(artifact_name) != PHASE7_EXPECTED_ARTIFACT_SHA256[artifact_name]:
+            raise ValueError(
+                f"The Phase 7 fit report has an unexpected hash for {artifact_name}."
+            )
+
+    # These are trusted-local artifacts; fixed hashes and report fields are verified first.
+    preprocessor = joblib.load(artifact_paths["preprocessor.joblib"])
+    final_model = joblib.load(artifact_paths["classifier.joblib"])
+
+    expected_features = tuple(
+        getattr(preprocessor, "feature_names_in_", PREDICTION_FEATURES)
+    )
+    if expected_features != PREDICTION_FEATURES:
+        raise ValueError(
+            "The Phase 7 preprocessor feature order does not match the application's expected schema."
+        )
+    if getattr(preprocessor, "n_features_in_", len(PREDICTION_FEATURES)) != len(PREDICTION_FEATURES):
+        raise ValueError("The Phase 7 preprocessor does not expect the required 30 inference features.")
+    if getattr(final_model, "n_features_in_", len(PREDICTION_FEATURES)) != len(PREDICTION_FEATURES):
+        raise ValueError("The Phase 7 classifier does not expect the required 30 inference features.")
+    model_classes = {int(value) for value in getattr(final_model, "classes_", [])}
+    if model_classes != {0, 1}:
+        raise ValueError("The Phase 7 classifier does not expose the expected encoded classes 0 and 1.")
+
+    return NetworkModel(preprocessor=preprocessor, model=final_model)
+
+
 @lru_cache(maxsize=1)
 def load_inference_model() -> NetworkModel:
-    """Load the persisted preprocessing pipeline and model once per process."""
+    """Load V1 by default, or the pinned Phase 7 model when explicitly selected."""
+    model_version = os.getenv(MODEL_VERSION_ENV, "legacy").strip().lower()
+    if model_version not in {"legacy", "phase7"}:
+        raise ValueError(
+            f"Unsupported {MODEL_VERSION_ENV} value {model_version!r}; use 'legacy' or 'phase7'."
+        )
+
     try:
+        if model_version == "phase7":
+            return _load_phase7_inference_model()
+
+        # Preserve legacy V1 behavior unless V2 is explicitly enabled.
         preprocessor = load_object(str(FINAL_MODEL_DIR / "preprocessor.pkl"))
         final_model = load_object(str(FINAL_MODEL_DIR / "model.pkl"))
         expected_features = tuple(getattr(preprocessor, "feature_names_in_", PREDICTION_FEATURES))

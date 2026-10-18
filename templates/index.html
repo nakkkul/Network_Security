@@ -51,14 +51,23 @@
                     <code>Result</code> is not required for inference.
                 </p>
 
-                <form action="/predict" method="post" enctype="multipart/form-data" class="upload-form">
+                <form action="/predict" method="post" enctype="multipart/form-data" class="upload-form" novalidate>
                     <label class="dropzone" for="file-input">
-                        <input id="file-input" name="file" type="file" accept=".csv,text/csv" required>
+                        <input id="file-input" name="file" type="file" accept=".csv,text/csv">
                         <span class="dropzone-icon">CSV</span>
                         <span class="dropzone-title">Choose a CSV file</span>
                         <span class="dropzone-subtitle">Use your own dataset or the sample file below.</span>
                     </label>
                     <div id="selected-file" class="selected-file">No file selected</div>
+                    <p
+                        id="file-error"
+                        class="form-error"
+                        role="alert"
+                        aria-live="polite"
+                        tabindex="-1"
+                        hidden
+                        style="margin: 8px 0 0; color: #b42318; font-size: 0.9rem; font-weight: 600;"
+                    ></p>
                     <button class="primary-button" type="submit">Analyze Dataset</button>
                 </form>
 
@@ -120,15 +129,52 @@
 
     <script>
         const fileInput = document.getElementById('file-input');
+        const fileError = document.getElementById('file-error');
         const selectedFile = document.getElementById('selected-file');
         const form = document.querySelector('.upload-form');
         const submitButton = form.querySelector('.primary-button');
 
+        function clearFileError() {
+            fileError.textContent = '';
+            fileError.hidden = true;
+            fileInput.removeAttribute('aria-invalid');
+        }
+
+        function showFileError(message) {
+            fileError.textContent = message;
+            fileError.hidden = false;
+            fileInput.setAttribute('aria-invalid', 'true');
+            // Focus the visible message. The file input is visually hidden by CSS.
+            fileError.focus();
+        }
+
         fileInput.addEventListener('change', () => {
-            selectedFile.textContent = fileInput.files.length ? fileInput.files[0].name : 'No file selected';
+            const hasFile = fileInput.files && fileInput.files.length > 0;
+
+            selectedFile.textContent = hasFile
+                ? fileInput.files[0].name
+                : 'No file selected';
+
+            clearFileError();
         });
 
-        form.addEventListener('submit', () => {
+        form.addEventListener('submit', (event) => {
+            const hasFile = fileInput.files && fileInput.files.length > 0;
+
+            if (!hasFile) {
+                event.preventDefault();
+                showFileError('Please choose a CSV file before analyzing.');
+                return;
+            }
+
+            const selected = fileInput.files[0];
+            if (!selected.name.toLowerCase().endsWith('.csv')) {
+                event.preventDefault();
+                showFileError('Please choose a file with the .csv extension.');
+                return;
+            }
+
+            clearFileError();
             submitButton.disabled = true;
             submitButton.textContent = 'Analyzing…';
         });

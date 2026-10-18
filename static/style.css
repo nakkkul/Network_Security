@@ -243,32 +243,69 @@ h2 {
 
 .table-wrap {
     margin-top: 18px;
-    overflow: auto;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: scroll;
+    overflow-y: auto;
+    overscroll-behavior-x: contain;
     border: 1px solid var(--border);
     border-radius: 14px;
     max-height: 570px;
+    scrollbar-width: auto;
+    scrollbar-color: #9aa9bf #eef2f7;
 }
 
+/* Keep the table at its natural content width so every feature column
+   remains available through horizontal scrolling instead of being clipped. */
 .prediction-table {
-    width: 100%;
+    width: max-content;
+    min-width: 100%;
+    max-width: none;
+    table-layout: auto;
     border-collapse: collapse;
-    min-width: 980px;
     font-size: 0.82rem;
 }
-.prediction-table th, .prediction-table td {
+
+.prediction-table th,
+.prediction-table td {
     border-bottom: 1px solid var(--border);
     padding: 10px 11px;
     text-align: right;
     white-space: nowrap;
 }
+
 .prediction-table th {
     position: sticky;
     top: 0;
+    z-index: 1;
     background: #eef2f7;
     color: #344256;
     font-weight: 800;
 }
+
 .prediction-table td { color: #44516a; }
+
+/* Make the horizontal scrollbar visible and easy to grab in Chromium browsers. */
+.table-wrap::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.table-wrap::-webkit-scrollbar-track {
+    background: #eef2f7;
+    border-radius: 999px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb {
+    background: #9aa9bf;
+    border: 3px solid #eef2f7;
+    border-radius: 999px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb:hover {
+    background: #7e8da6;
+}
 
 .result-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
 .result-actions .primary-button, .result-actions .secondary-button { margin-top: 0; }
