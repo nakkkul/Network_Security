@@ -3,9 +3,11 @@ name: V2 CI (tests only)
 on:
   push:
     branches:
+      - main
       - v2-development
   pull_request:
     branches:
+      - main
       - v2-development
 
 permissions:
