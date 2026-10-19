@@ -30,7 +30,7 @@ BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 FINAL_MODEL_DIR = BASE_DIR / "final_model"
-# The Phase 7 artifacts are local, verified outputs and are not bundled in Git.
+# The approved Phase 7 artifacts are included in the V2 deployment bundle and verified before loading.
 # Keep V1 as the default; opt into the pinned Phase 7 model using
 # NETWORK_SECURITY_MODEL_VERSION=phase7 before starting the application.
 PHASE7_MODEL_DIR = Path(
