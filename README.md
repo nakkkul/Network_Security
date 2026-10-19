@@ -6,7 +6,7 @@ A machine-learning web application that analyzes **prepared website-feature data
 
 [**Open the live V2 application**](https://network-security-v2.onrender.com) · [GitHub repository](https://github.com/nakkkul/Network_Security) · [V2 CI workflow](https://github.com/nakkkul/Network_Security/actions/workflows/v2-ci.yml)
 
-![V2 CI](https://github.com/nakkkul/Network_Security/actions/workflows/v2-ci.yml/badge.svg?branch=v2-development)
+![V2 CI](https://github.com/nakkkul/Network_Security/actions/workflows/v2-ci.yml/badge.svg?branch=main)
 
 ## Try the application
 
@@ -45,17 +45,17 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Developer pushes to v2-development] --> B[GitHub repository]
-    B --> C[GitHub Actions: V2 CI tests]
-    B --> D[Render auto-deploy]
+    A[Develop and test on v2-development] --> B[Merge approved release into main]
+    B --> C[GitHub Actions: V2 CI on main]
+    B --> D[Render auto-deploy from main]
     D --> E[Build Docker image]
-    E --> F[artifact_bootstrap.py verifies Phase 7 files]
-    F --> G[Uvicorn starts app.py]
+    E --> F[Verify Phase 7 artifacts]
+    F --> G[Start Uvicorn and app.py]
     G --> H[Live V2 application]
     C --> I[CI pass/fail report]
 ```
 
-**CI and deployment are separate paths in the current setup.** GitHub Actions runs tests on the V2 branch; Render separately watches that branch and deploys pushed changes. A passing CI run is not currently configured as a mandatory deployment gate.
+**CI and deployment are separate paths.** GitHub Actions tests pushes and pull requests to both `v2-development` and `main`. Render watches the production `main` branch and deploys changes after they reach it. CI is not configured as a mandatory gate that blocks deployment when tests fail.
 
 ## Machine-learning evaluation and integrity
 
@@ -122,7 +122,7 @@ At startup, the container runs:
 python artifact_bootstrap.py && exec uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}
 ```
 
-If artifact verification fails, the web server is not started. On Render, the separate `network-security-v2` web service follows the `v2-development` branch and selects the Phase 7 model with `NETWORK_SECURITY_MODEL_VERSION=phase7`.
+If artifact verification fails, the web server is not started. On Render, the separate `network-security-v2` web service follows the production `main` branch after promotion and selects the Phase 7 model with `NETWORK_SECURITY_MODEL_VERSION=phase7`.
 
 Render's free service can spin down after inactivity, so the first request after a quiet period may be slow. The live application currently runs on the free service configuration; resource availability and free-tier terms can change.
 
