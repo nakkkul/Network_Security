@@ -1,0 +1,17 @@
+{
+  "completed_utc": "2026-10-18T15:23:50.658060+00:00",
+  "created_utc": "2026-10-18T15:23:50.515188+00:00",
+  "dataset_sha256": "e20bf913b6c2e669f4e875e5d223be2542cc7c79a7b62d284ae9d9627c3d9678",
+  "evaluation_git_branch": "v2-development",
+  "evaluation_git_commit": "d4685dc0aaef631d8e9357d62eed0fe8339c1fd4",
+  "fit_report_sha256": "4ac345827cde00412828f92f7c106b65a648c0ad5fb5107da223b9c341204ed3",
+  "note": "Permanent at-most-once guard. If interrupted, inspect execution evidence before considering any recovery; do not delete this marker automatically.",
+  "phase": 8,
+  "report_path": "evaluation_artifacts/phase8_holdout_evaluation_20261018T152350Z_46ffda00/holdout_evaluation_report.json",
+  "report_sha256": "ba6ab5045d84f4f21e5177e19abc588943b13014bb97d5a3ed14a3eac692499f",
+  "run_id": "20261018T152350Z_46ffda00",
+  "schema_version": "1.0",
+  "selected_pipeline_sha256": "ea810723e15af5f4f17df39f913eb7bdf4cd752b7e263834c2e83ce3b4c403db",
+  "split_manifest_sha256": "3dc82b79e2feb8f7b5fd23045be577be92d73d14aeed0005d3577782749f3ac7",
+  "status": "completed_holdout_evaluation_do_not_rerun"
+}

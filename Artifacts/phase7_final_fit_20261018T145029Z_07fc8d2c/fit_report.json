@@ -1,0 +1,56 @@
+{
+  "artifact_format_note": "Joblib/pickle artifacts are trusted-local files; only load artifacts from this project-controlled output directory.",
+  "artifacts_sha256": {
+    "classifier.joblib": "628cc23f0f8a31297105316c010ef798bc36c1f6b8249f1878d3fae1a81cf05e",
+    "outer_training_source_row_indices.csv": "4be3b605a2585bf239aac1f4b929eef18a7940f25bfc0bc5747c43e6e0134265",
+    "preprocessor.joblib": "3bab3417907555b052fc26760ad3b35b3f70fc0d0d66f3ca3a0f4c1c2f85f8ae",
+    "selected_pipeline.joblib": "ea810723e15af5f4f17df39f913eb7bdf4cd752b7e263834c2e83ce3b4c403db"
+  },
+  "classifier_parameters": {
+    "learning_rate": 0.1,
+    "n_estimators": 256,
+    "random_state": 43,
+    "subsample": 0.9
+  },
+  "created_utc": "2026-10-18T14:50:32.283688+00:00",
+  "dataset_sha256": "e20bf913b6c2e669f4e875e5d223be2542cc7c79a7b62d284ae9d9627c3d9678",
+  "final_model_directory_modified": false,
+  "fitted_estimator_saved": true,
+  "git_branch": "v2-development",
+  "holdout_predictions_generated": false,
+  "holdout_rows_passed_to_estimator": false,
+  "holdout_scored": false,
+  "implementation_git_commit": "27f44fe950e92196ad8fe88a8500d5a6a89fa8ff",
+  "inner_cv_assignment_sha256": "9540bfa60ee0955455e8ba8ae3e039f6c83741f7b2760bac1db9a10fb1291cc9",
+  "outer_training_rows_fitted": 8843,
+  "output_policy": "new ignored Artifacts/phase7_final_fit_<run_id>/ directory only",
+  "phase": 7,
+  "pipeline_artifact_path": "selected_pipeline.joblib",
+  "preprocessor": {
+    "class": "KNNImputer",
+    "n_neighbors": 3,
+    "weights": "uniform"
+  },
+  "protected_final_model_hashes_before_and_after": {
+    "model.pkl": "c64bc2259d3ab5d73c89165fe3f0ab00acb73283ca5f8d7a2320e0a2116ce1f1",
+    "preprocessor.pkl": "6c25d32d895d34d565418d1924ef13f7d21373f0a29dc8adc6f80d337cba2a39"
+  },
+  "reserved_holdout_rows": 2212,
+  "run_id": "20261018T145029Z_07fc8d2c",
+  "schema_sha256": "0fe172eb670067a0048c62b601d5b63d311be827a5ee81c65f0fbd3dc480ad83",
+  "schema_version": "1.0",
+  "selected_candidate_by_inner_cv_only": "Gradient Boosting",
+  "selected_inner_cv_mean_phishing_f1": 0.9438506766903793,
+  "selection_metric": "phishing F1; positive label is encoded class 0",
+  "selection_report_path": "evaluation_artifacts/phase6_cv_selection_20261018T140001Z_dd6a03e5/selection_report.json",
+  "selection_report_sha256": "fb122e6426c34bf38deb6f6b985b157655d5b394723261808f853dd7e9f58ee1",
+  "selection_run_id": "20261018T140001Z_dd6a03e5",
+  "selection_source_git_commit": "76482641d41c300660be597224208a14090607e5",
+  "split_manifest_sha256": "3dc82b79e2feb8f7b5fd23045be577be92d73d14aeed0005d3577782749f3ac7",
+  "target_mapping": {
+    "raw_-1": 0,
+    "raw_1": 1
+  },
+  "training_metrics_computed": false,
+  "training_source_row_indices_sha256": "c5170f24b8507f8e4c5a708509f23c3e967d3ff0616bfadfd09c84533cfe5bc1"
+}

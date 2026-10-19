@@ -1,0 +1,43 @@
+# Never include local secrets, virtual environments, caches, Git metadata, or archives.
+.git/
+.github/
+.env
+.env.*
+!.env.example
+*.rar
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.vscode/
+
+# Exclude local datasets, evaluation outputs, and experimental artifacts.
+Network_Data/
+valid_data/
+evaluation_artifacts/
+v2_phase2_evaluation/
+v2_phase6_evaluation/
+tests/
+logs/
+mlflow.db
+
+# Include only the approved, hash-pinned Phase 7 deployment bundle.
+Artifacts/*
+!Artifacts/phase7_final_fit_20261018T145029Z_07fc8d2c/
+Artifacts/phase7_final_fit_20261018T145029Z_07fc8d2c/*
+!Artifacts/phase7_final_fit_20261018T145029Z_07fc8d2c/fit_report.json
+!Artifacts/phase7_final_fit_20261018T145029Z_07fc8d2c/selected_pipeline.joblib
+!Artifacts/phase7_final_fit_20261018T145029Z_07fc8d2c/preprocessor.joblib
+!Artifacts/phase7_final_fit_20261018T145029Z_07fc8d2c/classifier.joblib
+!Artifacts/phase7_final_fit_20261018T145029Z_07fc8d2c/outer_training_source_row_indices.csv
+
+# Request-specific outputs are runtime data, not build inputs.
+prediction_output/*
+!prediction_output/.gitkeep
+
+# Include only the two explicitly tracked V1 inference artifacts.
+final_model/*
+!final_model/model.pkl
+!final_model/preprocessor.pkl

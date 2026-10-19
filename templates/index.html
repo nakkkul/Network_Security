@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Analyze prepared website data for phishing signs by uploading a CSV file.">
+    <title>Phishing Website Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <main class="page-shell">
+        <section class="hero">
+            <div class="eyebrow">WEBSITE DATA • PHISHING CHECK</div>
+            <h1>Check website records for phishing signs</h1>
+            <p class="hero-text">
+                Upload a CSV with prepared website details to get a prediction for each row.
+                This demo needs a formatted file - it cannot check a website from its web address alone.
+            </p>
+            <div class="hero-badges">
+                <span>CSV upload</span>
+                <span>{{ feature_count }} required columns</span>
+                <span>Downloadable results</span>
+            </div>
+        </section>
+
+        {% if error %}
+        <div class="alert alert-error" role="alert">
+            <strong>We couldn't analyze that file</strong>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        {% if success %}
+        <div class="alert alert-success" role="status">
+            {{ success }}
+        </div>
+        {% endif %}
+
+        <section class="main-grid">
+            <div class="card upload-card">
+                <div class="section-heading">
+                    <div>
+                        <div class="section-kicker">START HERE</div>
+                        <h2>Upload your CSV file</h2>
+                    </div>
+                    <div class="count-chip">{{ feature_count }} required columns</div>
+                </div>
+                <p class="muted">
+                    Use the same {{ feature_count }} columns shown in our sample file. You do not need to include
+                    the training-only <code>Result</code> column; predictions will be added to your results.
+                </p>
+                <form action="/predict" method="post" enctype="multipart/form-data" class="upload-form" novalidate>
+                    <label class="dropzone" for="file-input">
+                        <input id="file-input" name="file" type="file" accept=".csv,text/csv" required>
+                        <span class="dropzone-icon">CSV</span>
+                        <span class="dropzone-title">Choose a CSV file</span>
+                        <span class="dropzone-subtitle">Not sure about the format? Download the sample template below.</span>
+                    </label>
+                    <div id="selected-file" class="selected-file" aria-live="polite">No file selected</div>
+                    <div id="file-error" class="alert alert-error" role="alert" aria-live="assertive" style="display: none;">Please choose a CSV file before analyzing.</div>
+                    <button class="primary-button" type="submit">Analyze CSV</button>
+                </form>
+                <a class="secondary-button" href="/sample-data">Download sample CSV template</a>
+            </div>
+
+            <div class="card info-card">
+                <div class="section-kicker">HOW IT WORKS</div>
+                <h2>Four simple steps</h2>
+                <div class="pipeline-list">
+                    <div class="pipeline-step">
+                        <span>01</span>
+                        <div><strong>Choose your file</strong><p>Use the sample template or a CSV in the same format.</p></div>
+                    </div>
+                    <div class="pipeline-step">
+                        <span>02</span>
+                        <div><strong>Check the format</strong><p>We check that the required columns and values are present.</p></div>
+                    </div>
+                    <div class="pipeline-step">
+                        <span>03</span>
+                        <div><strong>Analyze each row</strong><p>The model estimates whether each record resembles phishing or legitimate activity.</p></div>
+                    </div>
+                    <div class="pipeline-step">
+                        <span>04</span>
+                        <div><strong>Review and download</strong><p>See the summary and download the full results as a CSV.</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card explanation-card">
+            <div>
+                <div class="section-kicker">FILE FORMAT</div>
+                <h2>What should the CSV contain?</h2>
+                <p class="muted">
+                    Your file needs {{ feature_count }} prepared website characteristics, such as URL length,
+                    domain details and link behavior. A website address by itself is not enough. Download the
+                    sample CSV to see the exact column names and format.
+                </p>
+            </div>
+            <div class="feature-list">
+                <span>URL details</span>
+                <span>Domain details</span>
+                <span>Links and page behavior</span>
+                <span>Security indicators</span>
+            </div>
+        </section>
+
+        <section class="footer-grid">
+            <div class="mini-card"><strong>Before you start</strong><span>A URL alone cannot be analyzed. Use a CSV with the required website characteristics.</span></div>
+            <div class="mini-card"><strong>Your results</strong><span>Review the prediction counts and download a results file for every analyzed row.</span></div>
+            <div class="mini-card"><strong>Important note</strong><span>Predictions are estimates and can be wrong. Do not treat them as a security guarantee.</span></div>
+        </section>
+
+        <footer>
+            <span>Phishing Website Detection System</span>
+            <span>CSV-based machine-learning demo • Results are estimates</span>
+        </footer>
+    </main>
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const selectedFile = document.getElementById('selected-file');
+        const fileError = document.getElementById('file-error');
+        const form = document.querySelector('.upload-form');
+        const submitButton = form.querySelector('.primary-button');
+        let submitAttempted = false;
+
+        function showFileError() {
+            fileError.style.display = 'flex';
+            fileInput.setAttribute('aria-invalid', 'true');
+        }
+
+        function clearFileError() {
+            fileError.style.display = 'none';
+            fileInput.removeAttribute('aria-invalid');
+        }
+
+        fileInput.addEventListener('change', () => {
+            const hasFile = fileInput.files && fileInput.files.length > 0;
+            selectedFile.textContent = hasFile ? fileInput.files[0].name : 'No file selected';
+            if (hasFile) {
+                clearFileError();
+            } else if (submitAttempted) {
+                showFileError();
+            }
+        });
+
+        form.addEventListener('submit', (event) => {
+            const hasFile = fileInput.files && fileInput.files.length > 0;
+            if (!hasFile) {
+                event.preventDefault();
+                submitAttempted = true;
+                showFileError();
+                return;
+            }
+
+            clearFileError();
+            submitButton.disabled = true;
+            submitButton.textContent = 'Analyzing…';
+        });
+    </script>
+</body>
+</html>

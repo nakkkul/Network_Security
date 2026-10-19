@@ -1,12 +1,13 @@
 import yaml
+import hashlib
 from network_security.exception.exception import NetworkSecurityException
 from network_security.logging.logger import logging
 import os,sys
 import numpy as np
 import dill
 import pickle
-from sklearn.metrics import r2_score
-from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import f1_score, make_scorer
+from sklearn.model_selection import GridSearchCV, StratifiedGroupKFold
 
 
 
@@ -57,8 +58,7 @@ def load_object(file_path: str, ) -> object:
         if not os.path.exists(file_path):
             raise Exception(f"The file: {file_path} is not exists")
         with open(file_path, "rb") as file_obj:
-            print(file_obj)
-            return pickle.load(file_obj)
+                return pickle.load(file_obj)
     except Exception as e:
         raise NetworkSecurityException(e, sys) from e
     
@@ -76,33 +76,97 @@ def load_numpy_array_data(file_path: str) -> np.array:
     
 
 
-def evaluate_models(X_train, y_train,X_test,y_test,models,param):
+PHISHING_LABEL = 0
+PHISHING_F1_SCORER = make_scorer(f1_score, pos_label=PHISHING_LABEL, zero_division=0)
+
+
+def make_feature_group_ids(features):
+    """Create stable IDs for identical finite feature rows (target excluded)."""
     try:
+        values = np.array(features, dtype=np.float64, copy=True, order="C")
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Features must be a finite numeric 2D array.") from exc
+
+    if values.ndim != 2 or values.shape[0] == 0 or values.shape[1] == 0:
+        raise ValueError("Features must be a non-empty 2D array.")
+    if not np.isfinite(values).all():
+        raise ValueError("Features must not contain NaN or infinite values.")
+
+    # Treat -0.0 and +0.0 as the same feature value before hashing.
+    values[values == 0.0] = 0.0
+    return np.asarray(
+        [hashlib.sha256(np.ascontiguousarray(row).tobytes()).hexdigest() for row in values],
+        dtype=object,
+    )
+
+
+def build_group_aware_cv_splits(X_train, y_train, n_splits=5, random_state=43):
+    """Build training-only CV splits with identical feature rows kept together.
+
+    This helper only creates indices; it never fits an estimator. These groups
+    are derived from the exact matrix supplied to the estimator. The official
+    Phase 2 holdout manifest remains a separate protocol for the canonical CSV.
+    """
+    X = np.asarray(X_train)
+    y = np.asarray(y_train).reshape(-1)
+    if X.ndim != 2 or X.shape[0] == 0:
+        raise ValueError("X_train must be a non-empty 2D array.")
+    if len(y) != X.shape[0]:
+        raise ValueError("X_train and y_train must contain the same number of rows.")
+    if set(np.unique(y).tolist()) != {0, 1}:
+        raise ValueError("Training labels must contain both encoded classes 0 (phishing) and 1 (legitimate).")
+    if n_splits < 2:
+        raise ValueError("n_splits must be at least 2.")
+
+    groups = make_feature_group_ids(X)
+    if len(np.unique(groups)) < n_splits:
+        raise ValueError("Not enough unique feature groups for the requested CV fold count.")
+
+    splitter = StratifiedGroupKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+    splits = list(splitter.split(X, y, groups=groups))
+    validation_counts = np.zeros(len(y), dtype=int)
+
+    for fold_number, (train_indices, validation_indices) in enumerate(splits):
+        train_groups = set(groups[train_indices].tolist())
+        validation_groups = set(groups[validation_indices].tolist())
+        if train_groups.intersection(validation_groups):
+            raise ValueError(f"Feature-group leakage detected in CV fold {fold_number}.")
+        if set(np.unique(y[train_indices]).tolist()) != {0, 1}:
+            raise ValueError(f"CV fold {fold_number} training partition does not contain both classes.")
+        if set(np.unique(y[validation_indices]).tolist()) != {0, 1}:
+            raise ValueError(f"CV fold {fold_number} validation partition does not contain both classes.")
+        validation_counts[validation_indices] += 1
+
+    if not np.all(validation_counts == 1):
+        raise ValueError("Every training row must appear in exactly one CV validation fold.")
+    return splits
+
+
+def evaluate_models(X_train, y_train, models, param):
+    """Rank candidate classifiers using training-only grouped CV phishing F1.
+
+    Test/holdout arrays are deliberately not accepted by this function, so they
+    cannot influence hyperparameter search or candidate model selection.
+    """
+    try:
+        cv_splits = build_group_aware_cv_splits(X_train, y_train)
         report = {}
 
-        for i in range(len(list(models))):
-            model = list(models.values())[i]
-            para=param[list(models.keys())[i]]
-
-            gs = GridSearchCV(model,para,cv=3)
-            gs.fit(X_train,y_train)
-
-            model.set_params(**gs.best_params_)
-            model.fit(X_train,y_train)
-
-            #model.fit(X_train, y_train)  # Train model
-
-            y_train_pred = model.predict(X_train)
-
-            y_test_pred = model.predict(X_test)
-
-            train_model_score = r2_score(y_train, y_train_pred)
-
-            test_model_score = r2_score(y_test, y_test_pred)
-
-            report[list(models.keys())[i]] = test_model_score
+        for model_name, model in models.items():
+            grid_search = GridSearchCV(
+                estimator=model,
+                param_grid=param.get(model_name, {}),
+                scoring=PHISHING_F1_SCORER,
+                cv=cv_splits,
+                refit=False,
+            )
+            grid_search.fit(X_train, y_train)
+            cv_score = float(grid_search.best_score_)
+            if not np.isfinite(cv_score):
+                raise ValueError(f"Model {model_name!r} produced a non-finite CV score.")
+            model.set_params(**grid_search.best_params_)
+            report[model_name] = cv_score
 
         return report
-
     except Exception as e:
-        raise NetworkSecurityException(e, sys)
+        raise NetworkSecurityException(e, sys) from e

@@ -1,21 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Data Table</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Review phishing website classification results and download the analyzed CSV.">
+    <title>Analysis Results | Phishing Website Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
 </head>
 <body>
-    <h2>Predicted Data</h2>
-    {{ table | safe }}
+    <main class="page-shell">
+        <section class="hero compact-hero">
+            <div class="eyebrow">ANALYSIS COMPLETE</div>
+            <h1>Your results are ready</h1>
+            <p class="hero-text">
+                We analyzed {{ rows_analyzed }} records. Review the summary below or download the complete results CSV.
+            </p>
+        </section>
+
+        <section class="results-grid">
+            <div class="stat-card"><span>Website records analyzed</span><strong>{{ rows_analyzed }}</strong></div>
+            <div class="stat-card"><span>Flagged as phishing</span><strong>{{ phishing_count }}</strong></div>
+            <div class="stat-card"><span>Classified as legitimate</span><strong>{{ legitimate_count }}</strong></div>
+        </section>
+
+        <section class="card result-card">
+            <div class="section-heading">
+                <div>
+                    <div class="section-kicker">YOUR RESULTS</div>
+                    <h2>Prediction for each row</h2>
+                </div>
+                <div class="legend">
+                    <span><b>0</b> Flagged as phishing</span>
+                    <span><b>1</b> Classified as legitimate</span>
+                </div>
+            </div>
+
+            <div class="table-wrap">{{ table|safe }}</div>
+            <p class="muted">
+                These are automated predictions, not definitive security verdicts. A record classified as legitimate
+                is not guaranteed to be safe. Use your normal security checks for important decisions.
+            </p>
+            <div class="result-actions">
+                {% if download_available %}
+                <a class="primary-button link-button" href="{{ url_for('download_result') }}?result_id={{ result_id }}">Download results CSV</a>
+                {% endif %}
+                <a class="secondary-button link-button" href="/">Analyze another file</a>
+            </div>
+        </section>
+
+        <footer>
+            <span>Phishing Website Detection System</span>
+            <span>0 = flagged as phishing • 1 = classified as legitimate</span>
+        </footer>
+    </main>
 </body>
 </html>

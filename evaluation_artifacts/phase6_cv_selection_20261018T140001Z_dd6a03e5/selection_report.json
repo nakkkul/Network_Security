@@ -1,0 +1,62 @@
+{
+  "candidate_results": {
+    "AdaBoost": {
+      "best_mean_inner_cv_phishing_f1": 0.914040382466073,
+      "best_parameters": {
+        "classifier__learning_rate": 0.1,
+        "classifier__n_estimators": 256
+      },
+      "metric": "f1_score(pos_label=0, zero_division=0)"
+    },
+    "Decision Tree": {
+      "best_mean_inner_cv_phishing_f1": 0.9197502220277958,
+      "best_parameters": {
+        "classifier__criterion": "entropy"
+      },
+      "metric": "f1_score(pos_label=0, zero_division=0)"
+    },
+    "Gradient Boosting": {
+      "best_mean_inner_cv_phishing_f1": 0.9438506766903793,
+      "best_parameters": {
+        "classifier__learning_rate": 0.1,
+        "classifier__n_estimators": 256,
+        "classifier__subsample": 0.9
+      },
+      "metric": "f1_score(pos_label=0, zero_division=0)"
+    },
+    "Logistic Regression": {
+      "best_mean_inner_cv_phishing_f1": 0.9164067235480082,
+      "best_parameters": {},
+      "metric": "f1_score(pos_label=0, zero_division=0)"
+    },
+    "Random Forest": {
+      "best_mean_inner_cv_phishing_f1": 0.9434236144500581,
+      "best_parameters": {
+        "classifier__n_estimators": 128
+      },
+      "metric": "f1_score(pos_label=0, zero_division=0)"
+    }
+  },
+  "created_utc": "2026-10-18T14:00:01.604864+00:00",
+  "dataset_sha256": "e20bf913b6c2e669f4e875e5d223be2542cc7c79a7b62d284ae9d9627c3d9678",
+  "final_estimator_fitted": false,
+  "holdout_predictions_generated": false,
+  "holdout_scored": false,
+  "inner_cv_assignment_sha256": "9540bfa60ee0955455e8ba8ae3e039f6c83741f7b2760bac1db9a10fb1291cc9",
+  "inner_cv_folds": 5,
+  "model_artifacts_saved": false,
+  "numpy_version": "2.4.6",
+  "outer_training_rows": 8843,
+  "output_policy": "new evaluation_artifacts/ directory only; never final_model/ or production outputs",
+  "pandas_version": "3.0.6",
+  "primary_selection_metric": "phishing F1; positive label is encoded class 0",
+  "project_git_commit": "76482641d41c300660be597224208a14090607e5",
+  "python_version": "3.11.17",
+  "reserved_holdout_rows": 2212,
+  "run_id": "20261018T140001Z_dd6a03e5",
+  "schema_sha256": "0fe172eb670067a0048c62b601d5b63d311be827a5ee81c65f0fbd3dc480ad83",
+  "schema_version": "1.0",
+  "scikit_learn_version": "1.9.1",
+  "selected_candidate_by_inner_cv_only": "Gradient Boosting",
+  "split_manifest_sha256": "3dc82b79e2feb8f7b5fd23045be577be92d73d14aeed0005d3577782749f3ac7"
+}

@@ -1,0 +1,49 @@
+name: V2 CI (tests only)
+
+on:
+  push:
+    branches:
+      - main
+      - v2-development
+  pull_request:
+    branches:
+      - main
+      - v2-development
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out V2 source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test and inference-test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            numpy==2.4.6 \
+            pandas==3.0.6 \
+            scipy==1.17.1 \
+            scikit-learn==1.9.1 \
+            PyYAML==6.0.3 \
+            dill==0.4.1 \
+            python-dotenv==1.2.4 \
+            fastapi==0.142.2 \
+            python-multipart==0.0.32 \
+            Jinja2==3.1.6 \
+            uvicorn==0.54.0
+
+      - name: Run application and Phase 3 regression tests (inference only)
+        run: python -m unittest discover -s tests -v
+
+      - name: Run Phase 2 evaluation-protocol tests
+        run: python -m unittest discover -s v2_phase2_evaluation/tests -v
