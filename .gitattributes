@@ -1,0 +1,2 @@
+# Preserve the exact hash-pinned Phase 7 report bytes.
+Artifacts/phase7_final_fit_20261018T145029Z_07fc8d2c/fit_report.json -text -diff
